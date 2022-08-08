@@ -21,17 +21,51 @@ function connected(jsn) {
     );
 }
 
-const host = 'ws://192.168.0.1:1883/mqtt'
+var mqttClient = null
 
-const options = {
-    keepalive: 30,
-    clientId: "Stream Deck",
-    protocolId: 'MQTT',
-    protocolVersion: 5,
-    clean: true,
-    reconnectPeriod: 1000,
-    connectTimeout: 30 * 1000,
-    rejectUnauthorized: false
+function mqttInit(settings) {
+    if (mqttClient != null) {
+        mqttClient.end()
+        mqttClient = null
+    }
+
+    if (!settings.host || !settings.port || !settings.path) {
+        console.log('MQTT settings are incomplete')
+        return
+    }
+
+    let scheme = 'ws://'
+    if (settings.ssl_secure.includes("enable")) {
+        scheme = 'wss://'
+    }
+
+    let host = scheme + settings.host + ':' + settings.port + settings.path
+
+    let options = {
+        keepalive: 30,
+        clientId: settings.cliend_id,
+        username: settings.username,
+        password: settings.password,
+        protocolId: 'MQTT',
+        protocolVersion: 5,
+        clean: true,
+        reconnectPeriod: 1000,
+        connectTimeout: 30 * 1000,
+        rejectUnauthorized: false
+    }
+
+    mqttClient = mqtt.connect(host, options)
+
+    mqttClient.on('connect', () => {
+        console.log('MQTT connect: ', settings.cliend_id)
+        mqttClient.subscribe(settings.subscribe_topic, { qos: 0 })
+    })
+    mqttClient.on('error', (error) => {
+        console.log('MQTT error: ', error)
+    })
+    mqttClient.on('message', (topic, message) => {
+        console.log('MQTT receive message：', message.toString() + '\nOn topic:= ' + topic)
+    })
 }
 
 var action = {
@@ -45,16 +79,7 @@ var action = {
     onWillAppear: function (jsn) {
         console.log('onWillAppear:', jsn);
 
-        const client = mqtt.connect(host, options)
-        client.on('reconnect', (error) => {
-            console.log('reconnecting:', error)
-        })
-        client.on('error', (error) => {
-            console.log('Connection failed:', error)
-        })
-        client.on('message', (topic, message) => {
-            console.log('receive message：', topic, message.toString())
-        })
+        mqttInit(jsn.payload.settings)
     },
 
     onWillDisappear: function (jsn) {
@@ -70,6 +95,7 @@ var action = {
 
         if (jsn.payload) {
             $SD.api.setSettings(jsn.context, jsn.payload);
+            mqttInit(jsn.payload)
         }
     },
 };
