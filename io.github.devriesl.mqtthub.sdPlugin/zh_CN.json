@@ -1,0 +1,11 @@
+{
+  "Description": "Stream Deck 上的 MQTT 控制台。", 
+  "Name": "MQTT Hub", 
+  "com.elgato.analogclock.action": {
+    "Name": "MQTT Hub", 
+    "Tooltip": "订阅以及发布MQTT消息"
+  },
+  
+  "Localization": {
+  }
+}

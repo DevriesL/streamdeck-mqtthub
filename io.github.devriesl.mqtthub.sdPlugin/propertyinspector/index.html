@@ -8,12 +8,115 @@
 </head>
 
 <body>
-    <div class="sdpi-wrapper hidden">
-    </div>
+    <div class="sdpi-wrapper">
+        <div class="sdpi-item">
+            <div class="sdpi-item-label" data-localize="ClientID">Client ID</div>
+            <input class="sdpi-item-value" id="cliend_id">
+        </div>
+        <div class="sdpi-item">
+            <div class="sdpi-item-label" data-localize="Host">Host</div>
+            <input class="sdpi-item-value" id="host">
+        </div>
+        <div class="sdpi-item">
+            <div class="sdpi-item-label" data-localize="Port">Port</div>
+            <input class="sdpi-item-value" id="port">
+        </div>
+        <div class="sdpi-item">
+            <div class="sdpi-item-label" data-localize="Path">Path</div>
+            <input class="sdpi-item-value" id="path">
+        </div>
+        <div class="sdpi-item">
+            <div class="sdpi-item-label" data-localize="Username">Username</div>
+            <input class="sdpi-item-value" id="username">
+        </div>
+        <div class="sdpi-item">
+            <div class="sdpi-item-label" data-localize="Password">Password</div>
+            <input class="sdpi-item-value" id="password">
+        </div>
+        <div class="sdpi-item" id="select_single">
+            <div class="sdpi-item-label" data-localize="SSLSecure">SSL Secure</div>
+            <select class="sdpi-item-value select" id="ssl_secure">
+               <option value="enable" data-localize="Enable">Enable</option>
+               <option value="disable" data-localize="Disable">Disable</option>
+            </select>
+        </div>
 
-    <script>
+        <div type="group" class="sdpi-item" id="publish-group">
+            <div class="sdpi-item-label" data-localize="Publish">Publish</div>
+            <div class="sdpi-item">
+                <div class="sdpi-item-label" data-localize="Topic">Topic</div>
+                <input class="sdpi-item-value" id="publish_topic">
+            </div>
+            <div class="sdpi-item">
+                <div class="sdpi-item-label" data-localize="Message">Message</div>
+                <input class="sdpi-item-value" id="message">
+            </div>
 
-    </script>
+            <div class="sdpi-item" id="select_single">
+                <div class="sdpi-item-label" data-localize="Retain">Retain</div>
+                <select class="sdpi-item-value select" id="retain">
+                   <option value="enable" data-localize="Enable">Enable</option>
+                   <option value="disable" data-localize="Disable">Disable</option>
+                </select>
+            </div>
+        </div>
+
+        <div type="group" class="sdpi-item" id="subscribe-group">
+            <div class="sdpi-item-label" data-localize="Subscribe">Subscribe</div>
+            <div class="sdpi-item">
+                <div class="sdpi-item-label" data-localize="Topic">Topic</div>
+                <input class="sdpi-item-value" id="subscribe_topic">
+            </div>
+        </div>
+        <hr>
+        <div class="sdpi-item">
+            <div class="sdpi-item-label" data-localize="Save">Save</div>
+            <button class="sdpi-item-value" id="save" onclick="save()" data-localize="SaveSettings">Save
+                Settings</button>
+        </div>
+        <div>
+
+            <script src="../common/common.js"></script>
+            <script>
+
+                function sendValueToPlugin(value, param) {
+
+                    MSETTINGS[param] = value;
+
+                    if ($SD && $SD.connection) {
+                        $SD.api.setSettings(null, MSETTINGS);
+                    }
+                }
+
+                if ($SD) {
+                    $SD.on('connected', function (jsonObj) {
+                        if (jsonObj.hasOwnProperty('actionInfo')) {
+                            settings = Utils.getProp(jsonObj, 'actionInfo.payload.settings', {});
+                            document.getElementById("cliend_id").value = settings.cliend_id || "";
+                            document.getElementById("host").value = settings.host || "";
+                            document.getElementById("port").value = settings.port || "";
+                            document.getElementById("path").value = settings.path || "";
+                            document.getElementById("username").value = settings.username || "";
+                            document.getElementById("password").value = settings.password || "";
+                            document.getElementById("ssl_secure").value = settings.ssl_secure || "";
+                            document.getElementById("publish_topic").value = settings.publish_topic || "";
+                            document.getElementById("message").value = settings.message || "";
+                            document.getElementById("retain").value = settings.retain || "";
+                            document.getElementById("subscribe_topic").value = settings.subscribe_topic || "";
+                        }
+                    });
+                };
+
+                const save = function () {
+                    if ($SD) {
+                        var payload = {};
+                        [].forEach.call(document.querySelectorAll(".sdpi-item-value"), element => {
+                            payload[element.id] = element.value;
+                        });
+                        $SD.api.sendToPlugin($SD.uuid, $SD.actionInfo["action"], payload);
+                    }
+                }
+            </script>
 
 </body>
 

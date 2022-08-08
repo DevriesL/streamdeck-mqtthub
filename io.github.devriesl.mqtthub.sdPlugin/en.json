@@ -1,0 +1,11 @@
+{
+  "Description": "A MQTT Client on Stream Deck.", 
+  "Name": "MQTT Hub", 
+  "com.elgato.analogclock.action": {
+    "Name": "MQTT Hub", 
+    "Tooltip": "Subscribe and publish a MQTT topic"
+  },
+  
+  "Localization": {
+  }
+}
