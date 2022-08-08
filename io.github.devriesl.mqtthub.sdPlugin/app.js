@@ -24,22 +24,22 @@ function connected(jsn) {
 var mqttClient = null
 
 function mqttInit(settings) {
-    if (mqttClient != null) {
-        mqttClient.end()
-        mqttClient = null
+    if (mqttClient) {
+        mqttClient.end();
+        mqttClient = null;
     }
 
     if (!settings.host || !settings.port || !settings.path) {
-        console.log('MQTT settings are incomplete')
-        return
+        console.log('MQTT settings are incomplete');
+        return;
     }
 
-    let scheme = 'ws://'
+    let scheme = 'ws://';
     if (settings.ssl_secure.includes("enable")) {
-        scheme = 'wss://'
+        scheme = 'wss://';
     }
 
-    let host = scheme + settings.host + ':' + settings.port + settings.path
+    let host = scheme + settings.host + ':' + settings.port + settings.path;
 
     let options = {
         keepalive: 30,
@@ -52,20 +52,20 @@ function mqttInit(settings) {
         reconnectPeriod: 1000,
         connectTimeout: 30 * 1000,
         rejectUnauthorized: false
-    }
+    };
 
-    mqttClient = mqtt.connect(host, options)
+    mqttClient = mqtt.connect(host, options);
 
     mqttClient.on('connect', () => {
         console.log('MQTT connect: ', settings.cliend_id)
         mqttClient.subscribe(settings.subscribe_topic, { qos: 0 })
-    })
+    });
     mqttClient.on('error', (error) => {
         console.log('MQTT error: ', error)
-    })
+    });
     mqttClient.on('message', (topic, message) => {
         console.log('MQTT receive message：', message.toString() + '\nOn topic:= ' + topic)
-    })
+    });
 }
 
 var action = {
@@ -84,14 +84,19 @@ var action = {
 
     onWillDisappear: function (jsn) {
         console.log('onWillDisappear:', jsn);
+
+        if (mqttClient) {
+            mqttClient.end();
+            mqttClient = null;
+        }
     },
 
     onKeyUp: function (jsn) {
         console.log('onKeyUp:', jsn);
 
         if (jsn.payload && mqttClient) {
-            let setting = jsn.payload.settings
-            mqttClient.publish(setting.publish_topic, setting.message, { qos: 0, retain: setting.retain.includes('enable') })
+            let setting = jsn.payload.settings;
+            mqttClient.publish(setting.publish_topic, setting.message, { qos: 0, retain: setting.retain.includes('enable') });
         }
     },
 
@@ -100,7 +105,7 @@ var action = {
 
         if (jsn.payload) {
             $SD.api.setSettings(jsn.context, jsn.payload);
-            mqttInit(jsn.payload)
+            mqttInit(jsn.payload);
         }
     },
 };
