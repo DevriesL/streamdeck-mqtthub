@@ -88,6 +88,11 @@ var action = {
 
     onKeyUp: function (jsn) {
         console.log('onKeyUp:', jsn);
+
+        if (jsn.payload && mqttClient) {
+            let setting = jsn.payload.settings
+            mqttClient.publish(setting.publish_topic, setting.message, { qos: 0, retain: setting.retain.includes('enable') })
+        }
     },
 
     onSendToPlugin: function (jsn) {
