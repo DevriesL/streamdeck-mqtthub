@@ -23,7 +23,7 @@ function connected(jsn) {
 
 var mqttClient = null
 
-function mqttInit(settings) {
+function mqttInit(context, settings) {
     if (mqttClient) {
         mqttClient.end();
         mqttClient = null;
@@ -65,7 +65,26 @@ function mqttInit(settings) {
     });
     mqttClient.on('message', (topic, message) => {
         console.log('MQTT receive message：', message.toString() + '\nOn topic:= ' + topic)
+        drawMessage(context, message.toString())
     });
+}
+
+function drawMessage(context, message) {
+    if (message.startsWith('data:image/png;base64')) {
+        $SD.api.setImage(context, message);
+    } else {
+        canvas = document.createElement('canvas');
+        canvas.width = 144;
+        canvas.height = 144;
+        var ctx = canvas.getContext("2d");
+
+        ctx.fillStyle = "#cccccc";
+        ctx.font = "48px Arial";
+        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'center';
+        ctx.fillText(message, 72, 72, 144);
+        $SD.api.setImage(context, canvas.toDataURL());
+    }
 }
 
 var action = {
@@ -79,7 +98,7 @@ var action = {
     onWillAppear: function (jsn) {
         console.log('onWillAppear:', jsn);
 
-        mqttInit(jsn.payload.settings)
+        mqttInit(jsn.context, jsn.payload.settings)
     },
 
     onWillDisappear: function (jsn) {
@@ -105,7 +124,7 @@ var action = {
 
         if (jsn.payload) {
             $SD.api.setSettings(jsn.context, jsn.payload);
-            mqttInit(jsn.payload);
+            mqttInit(jsn.context, jsn.payload);
         }
     },
 };
